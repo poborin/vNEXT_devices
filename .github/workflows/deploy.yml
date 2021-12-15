@@ -22,6 +22,7 @@ jobs:
         subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION }}
         resourceGroupName: ${{ secrets.AZURE_RG }}
         scope: subscription
+        region: australiasoutheast
         template: ./main.bicep
         parameters: storagePrefix=mystore
         failOnStdErr: false
