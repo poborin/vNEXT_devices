@@ -3,7 +3,7 @@
 on: [push]
 name: Azure ARM
 jobs:
-  build-and-deploy:
+  deploy-infrustructure:
     runs-on: ubuntu-latest
     steps:
 
@@ -16,7 +16,7 @@ jobs:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       # Deploy Bicep file
-    - name: deploy
+    - name: deploy infrustructure
       uses: azure/arm-deploy@v1
       with:
         subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION }}
@@ -24,5 +24,10 @@ jobs:
         scope: subscription
         region: australiasoutheast
         template: ./main.bicep
-        parameters: storagePrefix=mystore
         failOnStdErr: false
+
+  # build-functions:
+  # TODO: build functions binaries
+
+  # deploy-functions:
+  # TODO: deploy function binaries

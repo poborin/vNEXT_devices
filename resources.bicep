@@ -1,5 +1,3 @@
-param MY_PARAM int
-
 var location = resourceGroup().location
 var suffix = 'code-exercise'
 
