@@ -86,7 +86,7 @@ namespace devices
         }
 
         [FunctionName("setDevices")]
-        public static async Task Run([QueueTrigger("devices-queue", Connection = "qwerty123")] string myQueueItem, ILogger log)
+        public static async Task Run([QueueTrigger("devices-queue", Connection = "AzureWebJobsStorage")] string myQueueItem, ILogger log)
         {
             var devices = JsonConvert.DeserializeObject<List<Device>>(myQueueItem);
             var deviceIds = devices.Select(d => d.id);
