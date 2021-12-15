@@ -12,6 +12,8 @@ using Microsoft.Extensions.Configuration;
 using System.Net.Http;
 using System;
 using Microsoft.WindowsAzure.Storage.Table;
+using System.Net.Http.Headers;
+using Newtonsoft.Json.Linq;
 
 namespace devices
 {
@@ -27,6 +29,11 @@ namespace devices
     {
         public string correlationId { get; set; }
         public List<Device> devices { get; set; }
+    }
+
+    public class AssetsIdResponse
+    {
+        public List<DeviceIdWithAssetId> devices { get; set; }
     }
 
     public class DeviceIdWithAssetId
@@ -45,20 +52,21 @@ namespace devices
 
         public DeviceEntity(Device device, string assetId)
         {
-            this.PartitionKey = device.id;
-            this.RowKey = assetId;
-            this.deviceId = device.id;
-            this.Name = device.Name;
-            this.Location = device.location;
-            this.Type = device.type;
-            this.AssetId = assetId;
+            PartitionKey = "devices";
+            RowKey = device.id;
+            deviceId = device.id;
+            Name = device.Name;
+            Location = device.location;
+            Type = device.type;
+            AssetId = assetId;
+            Timestamp = DateTime.Now;
         }
     }
 
     public static class Devices
     {
         [FunctionName("parseDevices")]
-        public static async Task Run(
+        public static async Task ParseDevices(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
             ILogger log)
         {
@@ -86,18 +94,20 @@ namespace devices
         }
 
         [FunctionName("setDevices")]
-        public static async Task Run([QueueTrigger("devices-queue", Connection = "AzureWebJobsStorage")] string myQueueItem, ILogger log)
+        public static async Task SetDevices([QueueTrigger("devices-queue", Connection = "AzureWebJobsStorage")] string myQueueItem, ILogger log)
         {
             var devices = JsonConvert.DeserializeObject<List<Device>>(myQueueItem);
             var deviceIds = devices.Select(d => d.id);
-            var p = JsonConvert.SerializeObject(deviceIds);
+            var json = JsonConvert.SerializeObject(new { deviceIds = deviceIds });
 
             string body = "";
             using (var client = new HttpClient())
             {
+                StringContent httpContent = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+                httpContent.Headers.Add("x-functions-key", "DRefJc8eEDyJzS19qYAKopSyWW8ijoJe8zcFhH5J1lhFtChC56ZOKQ==");
+
                 client.BaseAddress = new Uri("http://tech-assessment.vnext.com.au");
-                client.DefaultRequestHeaders.Add("x-functions-key", "DRefJc8eEDyJzS19qYAKopSyWW8ijoJe8zcFhH5J1lhFtChC56ZOKQ==");
-                var result = await client.PostAsJsonAsync("/api/devices/assetId/", deviceIds);
+                var result = await client.PostAsync("/api/devices/assetId/", httpContent);
 
                 if (!result.IsSuccessStatusCode)
                 {
@@ -106,7 +116,8 @@ namespace devices
 
                 body = await result.Content.ReadAsStringAsync();
             }
-            var devicesWithAssetIds = JsonConvert.DeserializeObject<List<DeviceIdWithAssetId>>(body);
+
+            var assetsIdResponse = JsonConvert.DeserializeObject<AssetsIdResponse>(body);
 
             var config = new ConfigurationBuilder()
                             .AddEnvironmentVariables()
@@ -120,7 +131,7 @@ namespace devices
             devices
                 .ConvertAll(d =>
                 {
-                    var da = devicesWithAssetIds.Find(x => x.deviceId == d.id);
+                    var da = assetsIdResponse.devices.Find(x => x.deviceId == d.id);
                     return new DeviceEntity(d, da.assetId);
                 })
                 .ForEach(e => batchOperation.InsertOrReplace(e));
