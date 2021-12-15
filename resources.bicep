@@ -55,9 +55,6 @@ resource injestDevicesApp 'Microsoft.Web/sites@2021-02-01' = {
 
     }
   }
-  dependsOn: [
-    appServicePlan
-  ]
 }
 
 var mainSiteAppSettings = {
@@ -72,7 +69,4 @@ resource mainSiteConfigSettings 'Microsoft.Web/sites/config@2021-02-01' = {
   parent: injestDevicesApp
   name: 'appsettings'
   properties: mainSiteAppSettings
-  dependsOn: [
-    storageAccount
-  ]
 }
