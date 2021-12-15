@@ -26,8 +26,6 @@ jobs:
         template: ./main.bicep
         failOnStdErr: false
 
-  # build-functions:
-  # TODO: build functions binaries
-
   # deploy-functions:
-  # TODO: deploy function binaries
+  # TODO: build functions binaries
+  # https://docs.microsoft.com/en-us/azure/azure-functions/functions-how-to-github-actions?tabs=dotnet
