@@ -6,7 +6,8 @@ name: vNEXT devices
 env:
   AZURE_FUNCTIONAPP_NAME: injest-payload-code-exercise  # set this to your application's name
   AZURE_FUNCTIONAPP_PACKAGE_PATH: './devices'                   # set this to the path to your web app project, defaults to the repository root
-  DOTNET_VERSION: '5.0.404'                             # set this to the dotnet version to use
+  DOTNET5_VERSION: '5.0.x'              # set this to the dotnet version to use
+  DOTNET3_VERSION: '3.1.x'
 
 jobs:
   build-and-deploy:
@@ -32,10 +33,15 @@ jobs:
         template: ./main.bicep
         failOnStdErr: false
 
-    - name: Setup DotNet ${{ env.DOTNET_VERSION }} Environment
+    - name: Setup DotNet ${{ env.DOTNET3_VERSION }} Environment
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+        dotnet-version: ${{ env.DOTNET3_VERSION }}
+        
+    - name: Setup DotNet ${{ env.DOTNET5_VERSION }} Environment
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.DOTNET5_VERSION }}
 
     - name: 'Resolve Project Dependencies Using Dotnet'
       shell: bash
