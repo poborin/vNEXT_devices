@@ -70,7 +70,7 @@ namespace devices
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            log.LogInformation("C# HTTP trigger function processed a request.");
+            log.LogInformation("C# HTTP trigger function processed a request at {0}", DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffffffK"));
 
             string body = await req.ReadAsStringAsync();
             var payload = JsonConvert.DeserializeObject<Payload>(body);
@@ -136,6 +136,8 @@ namespace devices
                 })
                 .ForEach(e => batchOperation.InsertOrReplace(e));
             await devicesTable.ExecuteBatchAsync(batchOperation);
+
+            log.LogInformation("C# Queue trigger finished processing at {0}", DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffffffK"));
         }
     }
 }
